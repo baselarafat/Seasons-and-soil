@@ -1,0 +1,22 @@
+{
+  "name": "HarvestSystems.PlayModeTests",
+  "rootNamespace": "HarvestSystems.Tests.PlayMode",
+  "references": [
+    "HarvestSystems.Domain",
+    "HarvestSystems.Unity"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "noEngineReferences": false
+}

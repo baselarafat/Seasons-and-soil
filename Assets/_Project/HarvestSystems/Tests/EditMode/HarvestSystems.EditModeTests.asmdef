@@ -1,0 +1,23 @@
+{
+  "name": "HarvestSystems.EditModeTests",
+  "rootNamespace": "HarvestSystems.Tests.EditMode",
+  "references": [
+    "HarvestSystems.Domain"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "noEngineReferences": true
+}
