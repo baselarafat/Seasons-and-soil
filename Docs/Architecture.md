@@ -50,7 +50,10 @@ Assets/_Project/HarvestSystems/
     Definitions/
       Crops/
       Items/
+    Resources/
+      Input/
   Scenes/
+  Settings/               # URP renderer and pipeline assets
   Tests/
     EditMode/
     PlayMode/
@@ -144,6 +147,12 @@ Crops gain one growth day on each day transition. Watering is deliberately defer
 ### Programmer-art scene bootstrap
 
 The checked-in Phase 1 scene contains a bootstrap that creates simple colored geometry. This makes the repository runnable before art/prefab workflows exist. The bootstrap is a temporary composition convenience; production scenes and prefabs can replace it without changing the domain.
+
+### Supported modern Unity baseline
+
+The project pins Unity 6.6 and the stable package versions that Unity 6.6 supports: URP 17.6 with its 2D Renderer, Input System 1.20, UI Toolkit, and Test Framework 1.8. URP uses its current Render Graph path. This removes dependencies on the deprecated Built-in Render Pipeline, legacy `UnityEngine.Input`, and runtime IMGUI while keeping those choices outside the domain layer.
+
+The rendering alternative was Built-in, which would have reduced initial setup but is now on Unity's deprecation path and would force a later material/rendering migration. The input alternative was direct device polling; an authored action asset adds a small adapter and configuration file, but supports multiple devices, rebinding, and testable input boundaries. For the simple HUD, UI Toolkit costs more setup than `OnGUI`, but it matches the planned runtime debugging and editor-tool workflow. Preview packages are intentionally excluded: "new" here means the latest supported stable baseline, not experimental churn.
 
 ## Milestones
 

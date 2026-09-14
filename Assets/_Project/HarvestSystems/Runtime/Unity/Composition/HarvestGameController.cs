@@ -51,7 +51,7 @@ namespace HarvestSystems.Unity.Composition
             CropDefinition[] cropDefinitions = cropAssets.Select(asset => asset.ToDomain()).ToArray();
             selectedCropDefinition = cropDefinitions.First(definition => definition.Id == selectedCropAsset.Id);
 
-            SoilPlotView[] plotViews = FindObjectsByType<SoilPlotView>(FindObjectsSortMode.None);
+            SoilPlotView[] plotViews = FindObjectsByType<SoilPlotView>();
             var plots = new List<SoilPlot>(plotViews.Length);
             foreach (SoilPlotView view in plotViews)
             {
@@ -67,7 +67,7 @@ namespace HarvestSystems.Unity.Composition
                 view.Bind(this, Simulation.GetPlot(view.PlotId));
             }
 
-            foreach (DayAdvanceInteractable dayAdvance in FindObjectsByType<DayAdvanceInteractable>(FindObjectsSortMode.None))
+            foreach (DayAdvanceInteractable dayAdvance in FindObjectsByType<DayAdvanceInteractable>())
             {
                 dayAdvance.Bind(this);
             }

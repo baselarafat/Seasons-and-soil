@@ -4,6 +4,7 @@ using HarvestSystems.Unity.Player;
 using HarvestSystems.Unity.Presentation;
 using HarvestSystems.Unity.Time;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace HarvestSystems.Unity.Composition
 {
@@ -87,6 +88,13 @@ namespace HarvestSystems.Unity.Composition
             body.freezeRotation = true;
             body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
             player.AddComponent<BoxCollider2D>().size = new Vector2(0.65f, 0.85f);
+            InputActionAsset controls = Resources.Load<InputActionAsset>("Input/HarvestSystemsControls");
+            if (controls == null)
+            {
+                throw new MissingReferenceException("Missing Resources/Input/HarvestSystemsControls.inputactions.");
+            }
+
+            player.AddComponent<GameplayInput>().Configure(controls);
             player.AddComponent<TopDownPlayerController>();
             player.AddComponent<PlayerInteractor>();
         }

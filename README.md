@@ -16,12 +16,22 @@ The first slice supports:
 
 Watering, selling, seasons, save/load, NPCs, and custom authoring tools are intentionally deferred.
 
+## Technology baseline
+
+- Unity `6000.6.0f1`
+- Universal Render Pipeline `17.6.0` with the 2D Renderer and Render Graph enabled
+- Input System `1.20.0` with an authored action asset for keyboard and gamepad
+- UI Toolkit for runtime debug UI
+- Unity Test Framework `1.8.0`
+
+The project tracks the newest stable packages supported by its pinned Unity editor. Preview and experimental packages are added only when a concrete requirement justifies their maintenance cost.
+
 ## Open and run
 
 1. Open the repository folder in Unity Hub using Unity `6000.6.0f1`.
 2. Open `Assets/_Project/HarvestSystems/Scenes/Phase1.unity`.
 3. Enter Play Mode.
-4. Use WASD or the arrow keys to move and `E` to interact.
+4. Use WASD, arrow keys, or the left stick to move. Use `E` or the gamepad south button to interact.
 
 The scene contains one bootstrap component. It creates simple programmer-art geometry at runtime so the vertical slice stays reviewable without committing opaque binary art assets.
 

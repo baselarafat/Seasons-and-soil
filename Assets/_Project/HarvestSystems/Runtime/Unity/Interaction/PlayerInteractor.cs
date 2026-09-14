@@ -4,21 +4,24 @@ using UnityEngine;
 namespace HarvestSystems.Unity.Interaction
 {
     [RequireComponent(typeof(TopDownPlayerController))]
+    [RequireComponent(typeof(GameplayInput))]
     public sealed class PlayerInteractor : MonoBehaviour
     {
         [SerializeField, Min(0.1f)] private float reach = 0.8f;
         [SerializeField, Min(0.1f)] private float radius = 0.45f;
 
         private TopDownPlayerController movement;
+        private GameplayInput input;
 
         private void Awake()
         {
             movement = GetComponent<TopDownPlayerController>();
+            input = GetComponent<GameplayInput>();
         }
 
         private void Update()
         {
-            if (!Input.GetKeyDown(KeyCode.E))
+            if (!input.InteractWasPressedThisFrame)
             {
                 return;
             }

@@ -2,7 +2,8 @@
   "name": "HarvestSystems.Unity",
   "rootNamespace": "HarvestSystems.Unity",
   "references": [
-    "HarvestSystems.Domain"
+    "HarvestSystems.Domain",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
