@@ -16,8 +16,15 @@ namespace HarvestSystems.Unity.Presentation
             UIDocument document = GetComponent<UIDocument>();
             if (document.panelSettings == null)
             {
+                ThemeStyleSheet theme = Resources.Load<ThemeStyleSheet>("UI/HarvestSystemsRuntimeTheme");
+                if (theme == null)
+                {
+                    throw new MissingReferenceException("Missing Resources/UI/HarvestSystemsRuntimeTheme.tss.");
+                }
+
                 runtimePanelSettings = ScriptableObject.CreateInstance<PanelSettings>();
                 runtimePanelSettings.name = "Phase 1 HUD Panel Settings";
+                runtimePanelSettings.themeStyleSheet = theme;
                 runtimePanelSettings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
                 runtimePanelSettings.referenceResolution = new Vector2Int(1920, 1080);
                 runtimePanelSettings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
@@ -60,6 +67,7 @@ namespace HarvestSystems.Unity.Presentation
             int produce = controller.Simulation.Inventory.GetQuantity(controller.SelectedCrop.HarvestedItemId);
             return $"Day {controller.Simulation.Clock.CurrentDay}   Seeds: {seeds}   Harvested: {produce}\n" +
                    "Move: WASD / Arrows    Interact: E    Blue tile: next day\n" +
+                   "Plot actions: till → plant → water → harvest\n" +
                    controller.StatusMessage;
         }
 

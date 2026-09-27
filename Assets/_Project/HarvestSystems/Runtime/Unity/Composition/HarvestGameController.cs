@@ -103,9 +103,15 @@ namespace HarvestSystems.Unity.Composition
                 {
                     Simulation.Harvest(plotId);
                 }
+                else if (!plot.IsWatered)
+                {
+                    StatusMessage = Simulation.Water(plotId)
+                        ? $"Watered {definition.DisplayName}."
+                        : "That soil cannot be watered.";
+                }
                 else
                 {
-                    StatusMessage = $"{definition.DisplayName}: {plot.Crop.GrowthDays}/{definition.DaysToMature} growth days.";
+                    StatusMessage = $"{definition.DisplayName} is watered: {plot.Crop.GrowthDays}/{definition.DaysToMature} growth days.";
                 }
             }
 
@@ -115,7 +121,7 @@ namespace HarvestSystems.Unity.Composition
         public void AdvanceDay()
         {
             Simulation.AdvanceDay();
-            StatusMessage = $"Day {Simulation.Clock.CurrentDay} began. Crops advanced one growth day.";
+            StatusMessage = $"Day {Simulation.Clock.CurrentDay} began. Watered crops grew and the soil dried.";
             StateChanged?.Invoke();
         }
     }

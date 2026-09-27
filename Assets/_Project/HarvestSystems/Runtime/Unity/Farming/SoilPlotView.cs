@@ -12,8 +12,10 @@ namespace HarvestSystems.Unity.Farming
         [SerializeField] private string plotId = "plot.unconfigured";
 
         private static readonly Color UntilledColor = new Color(0.39f, 0.25f, 0.12f);
-        private static readonly Color TilledColor = new Color(0.57f, 0.36f, 0.17f);
-        private static readonly Color GrowingColor = new Color(0.26f, 0.58f, 0.24f);
+        private static readonly Color TilledDryColor = new Color(0.57f, 0.36f, 0.17f);
+        private static readonly Color TilledWetColor = new Color(0.30f, 0.24f, 0.20f);
+        private static readonly Color GrowingDryColor = new Color(0.26f, 0.58f, 0.24f);
+        private static readonly Color GrowingWetColor = new Color(0.20f, 0.46f, 0.32f);
         private static readonly Color MatureColor = new Color(0.91f, 0.55f, 0.18f);
 
         private SpriteRenderer spriteRenderer;
@@ -69,12 +71,14 @@ namespace HarvestSystems.Unity.Farming
             }
             else if (plot.Crop == null)
             {
-                spriteRenderer.color = TilledColor;
+                spriteRenderer.color = plot.IsWatered ? TilledWetColor : TilledDryColor;
             }
             else
             {
                 CropDefinition definition = controller.Simulation.GetCrop(plot.Crop.CropId);
-                spriteRenderer.color = plot.Crop.IsMature(definition) ? MatureColor : GrowingColor;
+                spriteRenderer.color = plot.Crop.IsMature(definition)
+                    ? MatureColor
+                    : plot.IsWatered ? GrowingWetColor : GrowingDryColor;
             }
         }
 

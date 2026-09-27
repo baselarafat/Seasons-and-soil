@@ -2,7 +2,7 @@
 
 Harvest Systems is a small top-down farming simulation built as a gameplay and systems-engineering portfolio project. Its scope is intentionally narrow: demonstrate clean domain modeling, Unity integration, data-driven configuration, testing, and an incremental path toward developer tooling.
 
-## Phase 1 vertical slice
+## Playable farming slice
 
 The first slice supports:
 
@@ -10,11 +10,12 @@ The first slice supports:
 - contextual interaction with `E`
 - tilling a soil plot
 - planting a configured seed from inventory
+- watering planted crops
 - advancing one day at the blue day marker
-- deterministic crop growth on each day transition
+- deterministic growth for watered crops and daily moisture reset
 - harvesting a mature crop into inventory
 
-Watering, selling, seasons, save/load, NPCs, and custom authoring tools are intentionally deferred.
+Selling, seasons, save/load, NPCs, and custom authoring tools are intentionally deferred.
 
 ## Technology baseline
 

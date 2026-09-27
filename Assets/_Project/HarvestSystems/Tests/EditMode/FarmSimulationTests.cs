@@ -31,15 +31,75 @@ namespace HarvestSystems.Tests.EditMode
                 Assert.That(simulation.Plant(PlotId, CropId), Is.True);
                 Assert.That(inventory.GetQuantity(SeedId), Is.Zero);
 
+                Assert.That(simulation.Water(PlotId), Is.True);
                 simulation.AdvanceDay();
                 Assert.That(simulation.Harvest(PlotId), Is.False);
 
+                Assert.That(simulation.Water(PlotId), Is.True);
                 simulation.AdvanceDay();
                 Assert.That(simulation.Harvest(PlotId), Is.True);
                 Assert.That(inventory.GetQuantity(ProduceId), Is.EqualTo(3));
                 Assert.That(plot.Crop, Is.Null);
                 Assert.That(plot.IsTilled, Is.True);
             }
+        }
+
+        [Test]
+        public void AdvanceDay_DryCropDoesNotGrow()
+        {
+            var inventory = new Inventory();
+            inventory.Add(SeedId, 1);
+            var plot = new SoilPlot(PlotId);
+
+            using (var simulation = new FarmSimulation(
+                       new GameClock(),
+                       inventory,
+                       new[] { plot },
+                       new[] { CreateCrop(2, 1) }))
+            {
+                simulation.Till(PlotId);
+                simulation.Plant(PlotId, CropId);
+
+                simulation.AdvanceDay();
+
+                Assert.That(plot.Crop.GrowthDays, Is.Zero);
+                Assert.That(plot.IsWatered, Is.False);
+            }
+        }
+
+        [Test]
+        public void AdvanceDay_WateredCropGrowsAndSoilDries()
+        {
+            var inventory = new Inventory();
+            inventory.Add(SeedId, 1);
+            var plot = new SoilPlot(PlotId);
+
+            using (var simulation = new FarmSimulation(
+                       new GameClock(),
+                       inventory,
+                       new[] { plot },
+                       new[] { CreateCrop(2, 1) }))
+            {
+                simulation.Till(PlotId);
+                simulation.Plant(PlotId, CropId);
+                Assert.That(simulation.Water(PlotId), Is.True);
+
+                simulation.AdvanceDay();
+
+                Assert.That(plot.Crop.GrowthDays, Is.EqualTo(1));
+                Assert.That(plot.IsWatered, Is.False);
+            }
+        }
+
+        [Test]
+        public void Water_RequiresTilledDrySoil()
+        {
+            var plot = new SoilPlot(PlotId);
+
+            Assert.That(plot.Water(), Is.False);
+            Assert.That(plot.Till(), Is.True);
+            Assert.That(plot.Water(), Is.True);
+            Assert.That(plot.Water(), Is.False);
         }
 
         [Test]

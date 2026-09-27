@@ -14,6 +14,7 @@ namespace HarvestSystems.Domain.Farming
 
         public StableId Id { get; }
         public bool IsTilled { get; private set; }
+        public bool IsWatered { get; private set; }
         public CropState Crop { get; private set; }
 
         public bool Till()
@@ -24,6 +25,18 @@ namespace HarvestSystems.Domain.Farming
             }
 
             IsTilled = true;
+            Changed?.Invoke(this);
+            return true;
+        }
+
+        public bool Water()
+        {
+            if (!IsTilled || IsWatered)
+            {
+                return false;
+            }
+
+            IsWatered = true;
             Changed?.Invoke(this);
             return true;
         }
@@ -40,15 +53,25 @@ namespace HarvestSystems.Domain.Farming
             return true;
         }
 
-        internal void AdvanceOneDay()
+        internal void ProcessDayTransition()
         {
-            if (Crop == null)
+            bool changed = false;
+            if (Crop != null && IsWatered)
             {
-                return;
+                Crop.AdvanceOneDay();
+                changed = true;
             }
 
-            Crop.AdvanceOneDay();
-            Changed?.Invoke(this);
+            if (IsWatered)
+            {
+                IsWatered = false;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                Changed?.Invoke(this);
+            }
         }
 
         internal bool RemoveMatureCrop(CropDefinition definition)

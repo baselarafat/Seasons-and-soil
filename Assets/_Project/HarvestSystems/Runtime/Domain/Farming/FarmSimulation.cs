@@ -23,7 +23,7 @@ namespace HarvestSystems.Domain.Farming
         public int Quantity { get; }
     }
 
-    /// <summary>Coordinates the Phase 1 systems and provides explicit player commands.</summary>
+    /// <summary>Coordinates the farming systems and provides explicit player commands.</summary>
     public sealed class FarmSimulation : IDisposable
     {
         private readonly Dictionary<StableId, SoilPlot> plots;
@@ -68,6 +68,8 @@ namespace HarvestSystems.Domain.Farming
         }
 
         public bool Till(StableId plotId) => GetPlot(plotId).Till();
+
+        public bool Water(StableId plotId) => GetPlot(plotId).Water();
 
         public bool Plant(StableId plotId, StableId cropId)
         {
@@ -127,7 +129,7 @@ namespace HarvestSystems.Domain.Farming
         {
             foreach (SoilPlot plot in plots.Values)
             {
-                plot.AdvanceOneDay();
+                plot.ProcessDayTransition();
             }
         }
 

@@ -140,9 +140,9 @@ If cross-cutting consumers later multiply (analytics, quests, audio, achievement
 
 One soil interaction tills an untilled plot, plants the selected Phase 1 crop on empty tilled soil, or harvests a mature crop. This minimizes UI/tool-selection work while validating the full system loop. A command/tool system will become worthwhile when watering and multiple tools arrive.
 
-### Growth is automatic per day in Phase 1
+### Growth requires watering from the first Phase 2 slice
 
-Crops gain one growth day on each day transition. Watering is deliberately deferred because it introduces daily moisture reset, feedback, and missed-day policy. Adding it in Phase 2 will be a real rule driven by a concrete play requirement rather than a speculative abstraction.
+Crops gain one growth day only when their plot is watered. A day transition applies growth first and then resets moisture, so the rule has deterministic ordering and a dry day simply pauses growth. Soil owns `IsWatered` because moisture belongs to the plot even when no crop is present. An alternative is storing `LastWateredDay`; that becomes useful if weather, irrigation history, or multi-day moisture is introduced, but a boolean expresses the current rule more directly and serializes cleanly later.
 
 ### Programmer-art scene bootstrap
 
@@ -167,7 +167,7 @@ The rendering alternative was Built-in, which would have reduced initial setup b
 
 ### Phase 2 — farming depth and calendar
 
-- watering and daily moisture reset
+- watering and daily moisture reset (implemented as the first Phase 2 slice)
 - explicit game time/date, season length, and time controls
 - multiple crop definitions and seed selection
 - crop growth/death policy defined from play requirements
