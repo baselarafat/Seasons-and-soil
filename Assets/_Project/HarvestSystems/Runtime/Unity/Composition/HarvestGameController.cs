@@ -16,14 +16,17 @@ namespace HarvestSystems.Unity.Composition
     {
         [SerializeField, Min(1)] private int initialSeedCount = 4;
 
-        private CropDefinitionSO selectedCropAsset;
-        private CropDefinition selectedCropDefinition;
+        private CropDefinitionSO[] cropAssets = Array.Empty<CropDefinitionSO>();
+        private CropDefinition[] cropDefinitions = Array.Empty<CropDefinition>();
+        private readonly Dictionary<StableId, CropDefinitionSO> cropAssetsById = new Dictionary<StableId, CropDefinitionSO>();
+        private int selectedCropIndex;
 
         public event Action StateChanged;
 
         public FarmSimulation Simulation { get; private set; }
-        public StableId SelectedCropId => selectedCropAsset.Id;
-        public CropDefinition SelectedCrop => selectedCropDefinition;
+        public IReadOnlyList<CropDefinition> AvailableCrops => cropDefinitions;
+        public StableId SelectedCropId => SelectedCrop.Id;
+        public CropDefinition SelectedCrop => cropDefinitions[selectedCropIndex];
         public string StatusMessage { get; private set; } = "Till a brown plot with E.";
 
         private void Start()
@@ -41,15 +44,22 @@ namespace HarvestSystems.Unity.Composition
 
         public void InitializeFromScene()
         {
-            CropDefinitionSO[] cropAssets = Resources.LoadAll<CropDefinitionSO>("Definitions/Crops");
+            cropAssets = Resources.LoadAll<CropDefinitionSO>("Definitions/Crops")
+                .OrderBy(asset => asset.Id.Value, StringComparer.Ordinal)
+                .ToArray();
             if (cropAssets.Length == 0)
             {
                 throw new InvalidOperationException("No CropDefinitionSO assets were found in Resources/Definitions/Crops.");
             }
 
-            selectedCropAsset = cropAssets.OrderBy(asset => asset.Id.Value, StringComparer.Ordinal).First();
-            CropDefinition[] cropDefinitions = cropAssets.Select(asset => asset.ToDomain()).ToArray();
-            selectedCropDefinition = cropDefinitions.First(definition => definition.Id == selectedCropAsset.Id);
+            cropDefinitions = cropAssets.Select(asset => asset.ToDomain()).ToArray();
+            cropAssetsById.Clear();
+            foreach (CropDefinitionSO cropAsset in cropAssets)
+            {
+                cropAssetsById.Add(cropAsset.Id, cropAsset);
+            }
+
+            selectedCropIndex = 0;
 
             SoilPlotView[] plotViews = FindObjectsByType<SoilPlotView>();
             var plots = new List<SoilPlot>(plotViews.Length);
@@ -59,7 +69,11 @@ namespace HarvestSystems.Unity.Composition
             }
 
             var inventory = new HarvestSystems.Domain.Inventory.Inventory();
-            inventory.Add(selectedCropAsset.SeedItem.Id, initialSeedCount);
+            foreach (CropDefinitionSO cropAsset in cropAssets)
+            {
+                inventory.Add(cropAsset.SeedItem.Id, initialSeedCount);
+            }
+
             Simulation = new FarmSimulation(new GameClock(), inventory, plots, cropDefinitions);
 
             foreach (SoilPlotView view in plotViews)
@@ -82,7 +96,8 @@ namespace HarvestSystems.Unity.Composition
             Simulation.Clock.TimeAdvanced += _ => StateChanged?.Invoke();
             Simulation.CropHarvested += harvested =>
             {
-                StatusMessage = $"Harvested {harvested.Quantity} {selectedCropAsset.HarvestedItem.DisplayName}.";
+                CropDefinitionSO harvestedCrop = cropAssetsById[harvested.CropId];
+                StatusMessage = $"Harvested {harvested.Quantity} {harvestedCrop.HarvestedItem.DisplayName}.";
                 StateChanged?.Invoke();
             };
 
@@ -99,8 +114,8 @@ namespace HarvestSystems.Unity.Composition
             else if (plot.Crop == null)
             {
                 StatusMessage = Simulation.Plant(plotId, SelectedCropId)
-                    ? $"Planted {selectedCropDefinition.DisplayName}."
-                    : $"No {selectedCropAsset.SeedItem.DisplayName} available.";
+                    ? $"Planted {SelectedCrop.DisplayName}."
+                    : $"No {cropAssets[selectedCropIndex].SeedItem.DisplayName} available.";
             }
             else
             {
@@ -135,6 +150,18 @@ namespace HarvestSystems.Unity.Composition
         {
             Simulation.AdvanceMinutes(minutes);
             StatusMessage = $"Advanced time by {minutes} minutes. It is now {Simulation.Clock.Time}.";
+            StateChanged?.Invoke();
+        }
+
+        public void SelectNextCrop()
+        {
+            if (cropDefinitions.Length == 0)
+            {
+                return;
+            }
+
+            selectedCropIndex = (selectedCropIndex + 1) % cropDefinitions.Length;
+            StatusMessage = $"Selected {cropAssets[selectedCropIndex].SeedItem.DisplayName}.";
             StateChanged?.Invoke();
         }
     }

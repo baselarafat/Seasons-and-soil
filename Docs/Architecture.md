@@ -140,7 +140,9 @@ The calendar currently has a configurable number of days per year and defaults t
 
 ### Contextual interaction for the slice
 
-One soil interaction tills an untilled plot, plants the selected Phase 1 crop on empty tilled soil, or harvests a mature crop. This minimizes UI/tool-selection work while validating the full system loop. A command/tool system will become worthwhile when watering and multiple tools arrive.
+One soil interaction tills an untilled plot, plants the selected crop on empty tilled soil, waters a growing crop, or harvests a mature crop. Seed selection is a Unity input concern that changes only the controller's selected crop ID; planting still goes through the same domain command and stable-ID catalog lookup. Carrot and turnip are separate authored assets but require no crop-specific code.
+
+The slice cycles selection with one input action instead of implementing a hotbar. A hotbar is the likely long-term UI because it makes more inventory items directly addressable, but it also requires slot assignment, focus/navigation, and presentation rules. Cycling proves that data-driven crop selection works while keeping those concerns in the inventory/UI milestone.
 
 ### Growth requires watering from the first Phase 2 slice
 
@@ -172,7 +174,7 @@ The rendering alternative was Built-in, which would have reduced initial setup b
 - watering and daily moisture reset (implemented as the first Phase 2 slice)
 - explicit deterministic game time/date and time controls (implemented)
 - season length and seasonal rules
-- multiple crop definitions and seed selection
+- multiple crop definitions and seed selection (implemented)
 - crop growth/death policy defined from play requirements
 - clearer interaction feedback and focused PlayMode integration coverage
 

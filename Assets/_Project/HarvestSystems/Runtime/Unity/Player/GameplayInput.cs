@@ -10,6 +10,7 @@ namespace HarvestSystems.Unity.Player
         private const string GameplayMapName = "Gameplay";
         private const string MoveActionName = "Move";
         private const string InteractActionName = "Interact";
+        private const string SelectNextCropActionName = "SelectNextCrop";
 
         [SerializeField] private InputActionAsset controls;
 
@@ -17,9 +18,11 @@ namespace HarvestSystems.Unity.Player
         private InputActionMap gameplayMap;
         private InputAction moveAction;
         private InputAction interactAction;
+        private InputAction selectNextCropAction;
 
         public Vector2 Movement => moveAction?.ReadValue<Vector2>() ?? Vector2.zero;
         public bool InteractWasPressedThisFrame => interactAction?.WasPressedThisFrame() ?? false;
+        public bool SelectNextCropWasPressedThisFrame => selectNextCropAction?.WasPressedThisFrame() ?? false;
 
         public void Configure(InputActionAsset inputAsset)
         {
@@ -68,6 +71,7 @@ namespace HarvestSystems.Unity.Player
             gameplayMap = runtimeControls.FindActionMap(GameplayMapName, true);
             moveAction = gameplayMap.FindAction(MoveActionName, true);
             interactAction = gameplayMap.FindAction(InteractActionName, true);
+            selectNextCropAction = gameplayMap.FindAction(SelectNextCropActionName, true);
 
             if (isActiveAndEnabled)
             {

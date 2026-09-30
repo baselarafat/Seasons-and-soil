@@ -22,6 +22,30 @@ namespace HarvestSystems.Tests.PlayMode
             Assert.That(bootstrap.GameController.Simulation.Clock.CurrentDay, Is.EqualTo(1));
             Assert.That(bootstrap.GameController.Simulation.Clock.Date.ToString(), Is.EqualTo("Year 1, Day 1"));
             Assert.That(bootstrap.GameController.Simulation.Clock.Time.ToString(), Is.EqualTo("06:00"));
+            Assert.That(bootstrap.GameController.AvailableCrops.Count, Is.EqualTo(2));
+            Assert.That(bootstrap.GameController.SelectedCropId, Is.EqualTo(new StableId("crop.carrot")));
+            Assert.That(
+                bootstrap.GameController.Simulation.Inventory.GetQuantity(new StableId("item.carrot_seed")),
+                Is.EqualTo(4));
+            Assert.That(
+                bootstrap.GameController.Simulation.Inventory.GetQuantity(new StableId("item.turnip_seed")),
+                Is.EqualTo(4));
+
+            bootstrap.GameController.SelectNextCrop();
+
+            Assert.That(bootstrap.GameController.SelectedCropId, Is.EqualTo(new StableId("crop.turnip")));
+            var firstPlotId = new StableId("plot.demo_1");
+            bootstrap.GameController.InteractWithPlot(firstPlotId);
+            bootstrap.GameController.InteractWithPlot(firstPlotId);
+            Assert.That(
+                bootstrap.GameController.Simulation.GetPlot(firstPlotId).Crop.CropId,
+                Is.EqualTo(new StableId("crop.turnip")));
+            Assert.That(
+                bootstrap.GameController.Simulation.Inventory.GetQuantity(new StableId("item.turnip_seed")),
+                Is.EqualTo(3));
+            Assert.That(
+                bootstrap.GameController.Simulation.Inventory.GetQuantity(new StableId("item.carrot_seed")),
+                Is.EqualTo(4));
 
             for (int i = 1; i <= 6; i++)
             {

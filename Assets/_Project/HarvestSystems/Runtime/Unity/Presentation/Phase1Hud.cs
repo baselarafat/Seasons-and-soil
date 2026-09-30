@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HarvestSystems.Unity.Composition;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -63,10 +64,18 @@ namespace HarvestSystems.Unity.Presentation
 
         private string BuildStatus()
         {
-            int seeds = controller.Simulation.Inventory.GetQuantity(controller.SelectedCrop.SeedItemId);
-            int produce = controller.Simulation.Inventory.GetQuantity(controller.SelectedCrop.HarvestedItemId);
-            return $"{controller.Simulation.Clock.Date}   {controller.Simulation.Clock.Time}   Seeds: {seeds}   Harvested: {produce}\n" +
-                   "Move: WASD / Arrows    Interact: E    Blue: next day    Orange: +1 hour\n" +
+            var inventoryEntries = new List<string>();
+            foreach (var crop in controller.AvailableCrops)
+            {
+                int seeds = controller.Simulation.Inventory.GetQuantity(crop.SeedItemId);
+                int produce = controller.Simulation.Inventory.GetQuantity(crop.HarvestedItemId);
+                inventoryEntries.Add($"{crop.DisplayName}: {seeds} seeds / {produce} harvested");
+            }
+
+            return $"{controller.Simulation.Clock.Date}   {controller.Simulation.Clock.Time}   Selected: {controller.SelectedCrop.DisplayName}\n" +
+                   $"{string.Join("    ", inventoryEntries)}\n" +
+                   "Move: WASD / Arrows    Interact: E    Select seed: Q\n" +
+                   "Blue: next day    Orange: +1 hour\n" +
                    "Plot actions: till → plant → water → harvest\n" +
                    controller.StatusMessage;
         }
@@ -91,7 +100,7 @@ namespace HarvestSystems.Unity.Presentation
             card.style.position = Position.Absolute;
             card.style.left = 16;
             card.style.top = 16;
-            card.style.width = 480;
+            card.style.width = 620;
             card.style.paddingLeft = 16;
             card.style.paddingRight = 16;
             card.style.paddingTop = 12;

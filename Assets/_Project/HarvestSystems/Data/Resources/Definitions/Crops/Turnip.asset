@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2d9446041274db9a1c2f1f870bf7b32, type: 3}
+  m_Name: Turnip Crop
+  m_EditorClassIdentifier: HarvestSystems.Unity::HarvestSystems.Unity.Data.CropDefinitionSO
+  stableId: crop.turnip
+  displayName: Turnip
+  seedItem: {fileID: 11400000, guid: 7570dc47c5f54e83b0c5fd4758f9eb5a, type: 2}
+  harvestedItem: {fileID: 11400000, guid: e015db1b6c94435eb64365237720f50a, type: 2}
+  daysToMature: 2
+  harvestQuantity: 1

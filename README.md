@@ -10,6 +10,7 @@ The first slice supports:
 - contextual interaction with `E`
 - tilling a soil plot
 - planting a configured seed from inventory
+- cycling between carrot and turnip seeds with `Q` or the gamepad right shoulder
 - watering planted crops
 - advancing one hour at the orange time marker or starting the next day at the blue marker
 - a deterministic clock with time-of-day and a compact year/day calendar
@@ -33,7 +34,7 @@ The project tracks the newest stable packages supported by its pinned Unity edit
 1. Open the repository folder in Unity Hub using Unity `6000.6.0f1`.
 2. Open `Assets/_Project/HarvestSystems/Scenes/Phase1.unity`.
 3. Enter Play Mode.
-4. Use WASD, arrow keys, or the left stick to move. Use `E` or the gamepad south button to interact. The orange marker advances one hour; the blue marker advances to 06:00 on the next day.
+4. Use WASD, arrow keys, or the left stick to move. Use `E` or the gamepad south button to interact. Use `Q` or the gamepad right shoulder to select the next seed. The orange marker advances one hour; the blue marker advances to 06:00 on the next day.
 
 The scene contains one bootstrap component. It creates simple programmer-art geometry at runtime so the vertical slice stays reviewable without committing opaque binary art assets.
 

@@ -15,6 +15,7 @@ namespace HarvestSystems.Unity.Data
         [SerializeField, Min(1)] private int harvestQuantity = 1;
 
         public StableId Id => new StableId(stableId);
+        public string DisplayName => displayName;
         public ItemDefinitionSO SeedItem => seedItem;
         public ItemDefinitionSO HarvestedItem => harvestedItem;
 
