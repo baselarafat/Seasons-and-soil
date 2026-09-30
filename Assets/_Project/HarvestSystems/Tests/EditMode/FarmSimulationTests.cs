@@ -92,6 +92,33 @@ namespace HarvestSystems.Tests.EditMode
         }
 
         [Test]
+        public void AdvanceMinutes_GrowsCropOnlyAfterCrossingMidnight()
+        {
+            var inventory = new Inventory();
+            inventory.Add(SeedId, 1);
+            var plot = new SoilPlot(PlotId);
+
+            using (var simulation = new FarmSimulation(
+                       new GameClock(startingMinuteOfDay: 22 * 60),
+                       inventory,
+                       new[] { plot },
+                       new[] { CreateCrop(2, 1) }))
+            {
+                simulation.Till(PlotId);
+                simulation.Plant(PlotId, CropId);
+                simulation.Water(PlotId);
+
+                simulation.AdvanceMinutes(60);
+                Assert.That(plot.Crop.GrowthDays, Is.Zero);
+                Assert.That(plot.IsWatered, Is.True);
+
+                simulation.AdvanceMinutes(60);
+                Assert.That(plot.Crop.GrowthDays, Is.EqualTo(1));
+                Assert.That(plot.IsWatered, Is.False);
+            }
+        }
+
+        [Test]
         public void Water_RequiresTilledDrySoil()
         {
             var plot = new SoilPlot(PlotId);

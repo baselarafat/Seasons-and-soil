@@ -72,8 +72,14 @@ namespace HarvestSystems.Unity.Composition
                 dayAdvance.Bind(this);
             }
 
+            foreach (TimeAdvanceInteractable timeAdvance in FindObjectsByType<TimeAdvanceInteractable>())
+            {
+                timeAdvance.Bind(this);
+            }
+
             Simulation.Inventory.Changed += _ => StateChanged?.Invoke();
             Simulation.Clock.DayAdvanced += _ => StateChanged?.Invoke();
+            Simulation.Clock.TimeAdvanced += _ => StateChanged?.Invoke();
             Simulation.CropHarvested += harvested =>
             {
                 StatusMessage = $"Harvested {harvested.Quantity} {selectedCropAsset.HarvestedItem.DisplayName}.";
@@ -122,6 +128,13 @@ namespace HarvestSystems.Unity.Composition
         {
             Simulation.AdvanceDay();
             StatusMessage = $"Day {Simulation.Clock.CurrentDay} began. Watered crops grew and the soil dried.";
+            StateChanged?.Invoke();
+        }
+
+        public void AdvanceTime(int minutes)
+        {
+            Simulation.AdvanceMinutes(minutes);
+            StatusMessage = $"Advanced time by {minutes} minutes. It is now {Simulation.Clock.Time}.";
             StateChanged?.Invoke();
         }
     }

@@ -20,6 +20,8 @@ namespace HarvestSystems.Tests.PlayMode
             Assert.That(bootstrap.GameController, Is.Not.Null);
             Assert.That(bootstrap.GameController.Simulation, Is.Not.Null);
             Assert.That(bootstrap.GameController.Simulation.Clock.CurrentDay, Is.EqualTo(1));
+            Assert.That(bootstrap.GameController.Simulation.Clock.Date.ToString(), Is.EqualTo("Year 1, Day 1"));
+            Assert.That(bootstrap.GameController.Simulation.Clock.Time.ToString(), Is.EqualTo("06:00"));
 
             for (int i = 1; i <= 6; i++)
             {

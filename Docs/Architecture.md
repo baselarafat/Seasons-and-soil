@@ -18,7 +18,7 @@ The domain never references `UnityEngine`. Unity-facing code may translate autho
 
 | Area | Plain C# domain models/services | ScriptableObject configuration | Unity adapters/controllers |
 |---|---|---|---|
-| Time | `GameClock`, later `GameDate` and calendar rules | Later calendar/season configuration if needed | clock HUD, day-advance interaction |
+| Time | `GameClock`, `GameDate`, `GameTime` | Later calendar/season configuration if needed | clock HUD and time controls |
 | Farming | `SoilPlot`, `CropState`, `CropDefinition`, `FarmSimulation` | `CropDefinitionSO` | `SoilPlotView` |
 | Items/inventory | `StableId`, `Inventory`, inventory change data | `ItemDefinitionSO` | inventory presenter/UI (later) |
 | Interaction | action methods on the relevant domain system | optional interaction prompts (later) | `IInteractable`, `PlayerInteractor`, player controller |
@@ -67,7 +67,7 @@ Separate assembly definitions enforce the dependency boundary: `HarvestSystems.D
 
 ```text
 PlayerInteractor
-  -> IInteractable (SoilPlotView / DayAdvanceInteractable)
+  -> IInteractable (SoilPlotView / time controls)
       -> HarvestGameController (scene composition boundary)
           -> FarmSimulation
               -> GameClock
@@ -132,9 +132,11 @@ If cross-cutting consumers later multiply (analytics, quests, audio, achievement
 
 `SoilPlot` owns its optional `CropState` and enforces till/plant/grow/harvest invariants. This prevents invalid combinations such as a crop on untilled soil. A data-oriented alternative would store soil and crop in separate arrays keyed by plot ID; that can be faster at very large scale, but four to hundreds of plots do not justify the synchronization cost.
 
-### Clock emits a completed day transition
+### Clock is deterministic and command-driven
 
-`GameClock.AdvanceDay` changes state and then emits `DayAdvanced`. `FarmSimulation` subscribes and advances crops. A central update loop that calls every system explicitly is simpler to step through and remains a reasonable option if event ordering becomes complex. Here the single meaningful transition demonstrates the intended event boundary without creating an event framework.
+`GameClock` advances only through explicit commands, never `Update` or wall-clock time. It exposes value-type `GameDate` and `GameTime` views while retaining an absolute day counter for simple growth and future save data. Large time jumps publish every crossed `DayAdvanced` event, so crop simulation cannot silently skip days. `AdvanceDay` means "next day at 06:00," which makes the interaction predictable even when the player has already advanced time.
+
+The calendar currently has a configurable number of days per year and defaults to 28. Seasons and month names remain deferred until their gameplay rules exist. A real-time Unity clock would make the demo feel more continuous, but it couples rule progression to frame time and complicates deterministic tests and offline simulation. A central simulation loop remains a reasonable alternative if event ordering grows beyond this small set of local subscriptions.
 
 ### Contextual interaction for the slice
 
@@ -165,10 +167,11 @@ The rendering alternative was Built-in, which would have reduced initial setup b
 - simple runtime HUD and visuals
 - EditMode rule tests and one PlayMode composition smoke test
 
-### Phase 2 — farming depth and calendar
+### Phase 2 — farming depth and calendar (in progress)
 
 - watering and daily moisture reset (implemented as the first Phase 2 slice)
-- explicit game time/date, season length, and time controls
+- explicit deterministic game time/date and time controls (implemented)
+- season length and seasonal rules
 - multiple crop definitions and seed selection
 - crop growth/death policy defined from play requirements
 - clearer interaction feedback and focused PlayMode integration coverage

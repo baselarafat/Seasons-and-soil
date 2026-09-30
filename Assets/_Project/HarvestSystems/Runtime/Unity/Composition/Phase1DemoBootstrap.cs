@@ -21,6 +21,7 @@ namespace HarvestSystems.Unity.Composition
             GameController = new GameObject("Harvest Game Controller").AddComponent<HarvestGameController>();
             BuildPlots();
             BuildDayAdvanceTile();
+            BuildTimeAdvanceTile();
             BuildPlayer();
 
             Phase1Hud hud = new GameObject("Phase 1 HUD").AddComponent<Phase1Hud>();
@@ -75,6 +76,15 @@ namespace HarvestSystems.Unity.Composition
             WorldVisuals.AddSquare(tile, new Color(0.20f, 0.55f, 0.85f), new Vector2(1.5f, 1.5f), 0);
             tile.AddComponent<BoxCollider2D>().size = new Vector2(1.5f, 1.5f);
             tile.AddComponent<DayAdvanceInteractable>();
+        }
+
+        private static void BuildTimeAdvanceTile()
+        {
+            GameObject tile = new GameObject("Advance Time Tile");
+            tile.transform.position = new Vector3(-4f, -0.2f, 0f);
+            WorldVisuals.AddSquare(tile, new Color(0.94f, 0.55f, 0.18f), new Vector2(1.5f, 1.5f), 0);
+            tile.AddComponent<BoxCollider2D>().size = new Vector2(1.5f, 1.5f);
+            tile.AddComponent<TimeAdvanceInteractable>();
         }
 
         private static void BuildPlayer()

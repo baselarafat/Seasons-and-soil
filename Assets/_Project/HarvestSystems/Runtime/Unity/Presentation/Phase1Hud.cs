@@ -65,8 +65,8 @@ namespace HarvestSystems.Unity.Presentation
         {
             int seeds = controller.Simulation.Inventory.GetQuantity(controller.SelectedCrop.SeedItemId);
             int produce = controller.Simulation.Inventory.GetQuantity(controller.SelectedCrop.HarvestedItemId);
-            return $"Day {controller.Simulation.Clock.CurrentDay}   Seeds: {seeds}   Harvested: {produce}\n" +
-                   "Move: WASD / Arrows    Interact: E    Blue tile: next day\n" +
+            return $"{controller.Simulation.Clock.Date}   {controller.Simulation.Clock.Time}   Seeds: {seeds}   Harvested: {produce}\n" +
+                   "Move: WASD / Arrows    Interact: E    Blue: next day    Orange: +1 hour\n" +
                    "Plot actions: till → plant → water → harvest\n" +
                    controller.StatusMessage;
         }
@@ -102,7 +102,7 @@ namespace HarvestSystems.Unity.Presentation
             card.style.borderBottomLeftRadius = 8;
             card.style.borderBottomRightRadius = 8;
 
-            Label title = new Label("HARVEST SYSTEMS — PHASE 1");
+            Label title = new Label("HARVEST SYSTEMS — FARMING SLICE");
             title.style.fontSize = 20;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.color = Color.white;

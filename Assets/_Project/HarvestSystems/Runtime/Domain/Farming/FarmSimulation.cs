@@ -120,12 +120,14 @@ namespace HarvestSystems.Domain.Farming
 
         public void AdvanceDay() => Clock.AdvanceDay();
 
+        public void AdvanceMinutes(int minutes) => Clock.AdvanceMinutes(minutes);
+
         public void Dispose()
         {
             Clock.DayAdvanced -= OnDayAdvanced;
         }
 
-        private void OnDayAdvanced(int _)
+        private void OnDayAdvanced(GameDate _)
         {
             foreach (SoilPlot plot in plots.Values)
             {
