@@ -1,5 +1,6 @@
 using HarvestSystems.Domain.Common;
 using HarvestSystems.Domain.Farming;
+using HarvestSystems.Domain.Time;
 using UnityEngine;
 
 namespace HarvestSystems.Unity.Data
@@ -13,6 +14,7 @@ namespace HarvestSystems.Unity.Data
         [SerializeField] private ItemDefinitionSO harvestedItem;
         [SerializeField, Min(1)] private int daysToMature = 3;
         [SerializeField, Min(1)] private int harvestQuantity = 1;
+        [SerializeField] private Season[] plantingSeasons = { Season.Spring };
 
         public StableId Id => new StableId(stableId);
         public string DisplayName => displayName;
@@ -32,7 +34,8 @@ namespace HarvestSystems.Unity.Data
                 seedItem.Id,
                 harvestedItem.Id,
                 daysToMature,
-                harvestQuantity);
+                harvestQuantity,
+                plantingSeasons);
         }
 
         private void OnValidate()

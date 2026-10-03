@@ -24,9 +24,11 @@ namespace HarvestSystems.Domain.Time
                 throw new ArgumentOutOfRangeException(nameof(startingMinuteOfDay));
             }
 
-            if (daysPerYear < 1)
+            if (daysPerYear < 4 || daysPerYear % 4 != 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(daysPerYear));
+                throw new ArgumentOutOfRangeException(
+                    nameof(daysPerYear),
+                    "A year must contain four equal-length seasons.");
             }
 
             CurrentDay = startingDay;
@@ -40,7 +42,9 @@ namespace HarvestSystems.Domain.Time
         public int CurrentDay { get; private set; }
         public int CurrentMinuteOfDay { get; private set; }
         public int DaysPerYear { get; }
+        public int DaysPerSeason => DaysPerYear / 4;
         public GameDate Date => GameDate.FromAbsoluteDay(CurrentDay, DaysPerYear);
+        public SeasonDate CalendarDate => SeasonDate.FromAbsoluteDay(CurrentDay, DaysPerSeason);
         public GameTime Time => GameTime.FromMinuteOfDay(CurrentMinuteOfDay);
 
         public void AdvanceDay()

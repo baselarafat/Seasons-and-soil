@@ -72,7 +72,8 @@ namespace HarvestSystems.Unity.Presentation
                 inventoryEntries.Add($"{crop.DisplayName}: {seeds} seeds / {produce} harvested");
             }
 
-            return $"{controller.Simulation.Clock.Date}   {controller.Simulation.Clock.Time}   Selected: {controller.SelectedCrop.DisplayName}\n" +
+            return $"{controller.Simulation.Clock.CalendarDate}   {controller.Simulation.Clock.Time}   Selected: {controller.SelectedCrop.DisplayName}\n" +
+                   $"Plant in: {string.Join(", ", controller.SelectedCrop.PlantingSeasons)}\n" +
                    $"{string.Join("    ", inventoryEntries)}\n" +
                    "Move: WASD / Arrows    Interact: E    Select seed: Q\n" +
                    "Blue: next day    Orange: +1 hour\n" +

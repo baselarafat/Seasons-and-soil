@@ -18,7 +18,7 @@ The domain never references `UnityEngine`. Unity-facing code may translate autho
 
 | Area | Plain C# domain models/services | ScriptableObject configuration | Unity adapters/controllers |
 |---|---|---|---|
-| Time | `GameClock`, `GameDate`, `GameTime` | Later calendar/season configuration if needed | clock HUD and time controls |
+| Time | `GameClock`, `GameDate`, `GameTime`, `SeasonDate` | Later calendar configuration asset if needed | clock HUD and time controls |
 | Farming | `SoilPlot`, `CropState`, `CropDefinition`, `FarmSimulation` | `CropDefinitionSO` | `SoilPlotView` |
 | Items/inventory | `StableId`, `Inventory`, inventory change data | `ItemDefinitionSO` | inventory presenter/UI (later) |
 | Interaction | action methods on the relevant domain system | optional interaction prompts (later) | `IInteractable`, `PlayerInteractor`, player controller |
@@ -88,7 +88,7 @@ The `HarvestGameController` is intentionally a thin scene-level composition root
 
 ## Configuration versus runtime state
 
-Configuration answers "what kind of thing is this?" Crop duration, yield, names, and item relationships are authored in ScriptableObjects. On startup, adapters validate and convert them into plain, read-only domain definitions.
+Configuration answers "what kind of thing is this?" Crop duration, yield, planting seasons, names, and item relationships are authored in ScriptableObjects. On startup, adapters validate and convert them into plain, read-only domain definitions.
 
 Runtime state answers "what happened in this playthrough?" Current day, item quantities, tilled plots, planted crop IDs, and accumulated growth live in ordinary C# objects. Runtime state never mutates a ScriptableObject.
 
@@ -136,13 +136,19 @@ If cross-cutting consumers later multiply (analytics, quests, audio, achievement
 
 `GameClock` advances only through explicit commands, never `Update` or wall-clock time. It exposes value-type `GameDate` and `GameTime` views while retaining an absolute day counter for simple growth and future save data. Large time jumps publish every crossed `DayAdvanced` event, so crop simulation cannot silently skip days. `AdvanceDay` means "next day at 06:00," which makes the interaction predictable even when the player has already advanced time.
 
-The calendar currently has a configurable number of days per year and defaults to 28. Seasons and month names remain deferred until their gameplay rules exist. A real-time Unity clock would make the demo feel more continuous, but it couples rule progression to frame time and complicates deterministic tests and offline simulation. A central simulation loop remains a reasonable alternative if event ordering grows beyond this small set of local subscriptions.
+The calendar has four equal seasons and defaults to seven days per season. `SeasonDate` is derived from the same absolute day as `GameDate`, so there is one authoritative counter rather than synchronized calendar fields. A dedicated configurable calendar definition would support variable season lengths, festivals, or leap rules, but those requirements do not yet exist. A real-time Unity clock would make the demo feel more continuous, but it couples rule progression to frame time and complicates deterministic tests and offline simulation. A central simulation loop remains a reasonable alternative if event ordering grows beyond this small set of local subscriptions.
 
 ### Contextual interaction for the slice
 
 One soil interaction tills an untilled plot, plants the selected crop on empty tilled soil, waters a growing crop, or harvests a mature crop. Seed selection is a Unity input concern that changes only the controller's selected crop ID; planting still goes through the same domain command and stable-ID catalog lookup. Carrot and turnip are separate authored assets but require no crop-specific code.
 
 The slice cycles selection with one input action instead of implementing a hotbar. A hotbar is the likely long-term UI because it makes more inventory items directly addressable, but it also requires slot assignment, focus/navigation, and presentation rules. Cycling proves that data-driven crop selection works while keeping those concerns in the inventory/UI milestone.
+
+### Planting returns an explicit outcome
+
+`FarmSimulation.Plant` returns a `PlantResult` instead of a boolean so the Unity adapter can distinguish untilled soil, an occupied plot, missing seed, and an out-of-season crop without duplicating domain rules. Exceptions remain reserved for invalid identifiers and broken invariants. A result object carrying richer context could replace the enum if planting later needs costs, substitutions, or multiple validation messages; an enum is sufficient for the current command and is easy to test exhaustively.
+
+Season rules currently limit planting only. Existing crops continue to grow when watered after a season transition. Killing crops at a boundary is a materially different player-loss policy, so it is deferred until that gameplay requirement and its feedback are designed.
 
 ### Growth requires watering from the first Phase 2 slice
 
@@ -173,7 +179,7 @@ The rendering alternative was Built-in, which would have reduced initial setup b
 
 - watering and daily moisture reset (implemented as the first Phase 2 slice)
 - explicit deterministic game time/date and time controls (implemented)
-- season length and seasonal rules
+- four-season calendar and seasonal planting rules (implemented)
 - multiple crop definitions and seed selection (implemented)
 - crop growth/death policy defined from play requirements
 - clearer interaction feedback and focused PlayMode integration coverage

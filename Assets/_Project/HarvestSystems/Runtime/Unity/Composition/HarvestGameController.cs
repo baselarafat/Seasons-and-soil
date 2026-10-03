@@ -113,9 +113,27 @@ namespace HarvestSystems.Unity.Composition
             }
             else if (plot.Crop == null)
             {
-                StatusMessage = Simulation.Plant(plotId, SelectedCropId)
-                    ? $"Planted {SelectedCrop.DisplayName}."
-                    : $"No {cropAssets[selectedCropIndex].SeedItem.DisplayName} available.";
+                PlantResult result = Simulation.Plant(plotId, SelectedCropId);
+                switch (result)
+                {
+                    case PlantResult.Success:
+                        StatusMessage = $"Planted {SelectedCrop.DisplayName}.";
+                        break;
+                    case PlantResult.OutOfSeason:
+                        StatusMessage = $"{SelectedCrop.DisplayName} cannot be planted in {Simulation.Clock.CalendarDate.Season}.";
+                        break;
+                    case PlantResult.MissingSeed:
+                        StatusMessage = $"No {cropAssets[selectedCropIndex].SeedItem.DisplayName} available.";
+                        break;
+                    case PlantResult.PlotNotTilled:
+                        StatusMessage = "Till the soil before planting.";
+                        break;
+                    case PlantResult.PlotOccupied:
+                        StatusMessage = "That plot already contains a crop.";
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
             else
             {
@@ -142,7 +160,7 @@ namespace HarvestSystems.Unity.Composition
         public void AdvanceDay()
         {
             Simulation.AdvanceDay();
-            StatusMessage = $"Day {Simulation.Clock.CurrentDay} began. Watered crops grew and the soil dried.";
+            StatusMessage = $"{Simulation.Clock.CalendarDate} began. Watered crops grew and the soil dried.";
             StateChanged?.Invoke();
         }
 

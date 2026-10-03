@@ -18,3 +18,4 @@ MonoBehaviour:
   harvestedItem: {fileID: 11400000, guid: e015db1b6c94435eb64365237720f50a, type: 2}
   daysToMature: 2
   harvestQuantity: 1
+  plantingSeasons: 0000000002000000

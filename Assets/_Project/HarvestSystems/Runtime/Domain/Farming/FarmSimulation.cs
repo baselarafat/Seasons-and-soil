@@ -71,28 +71,38 @@ namespace HarvestSystems.Domain.Farming
 
         public bool Water(StableId plotId) => GetPlot(plotId).Water();
 
-        public bool Plant(StableId plotId, StableId cropId)
+        public PlantResult Plant(StableId plotId, StableId cropId)
         {
             SoilPlot plot = GetPlot(plotId);
             CropDefinition definition = GetCrop(cropId);
 
-            if (!plot.IsTilled || plot.Crop != null)
+            if (!plot.IsTilled)
             {
-                return false;
+                return PlantResult.PlotNotTilled;
+            }
+
+            if (plot.Crop != null)
+            {
+                return PlantResult.PlotOccupied;
+            }
+
+            if (!definition.CanPlantIn(Clock.CalendarDate.Season))
+            {
+                return PlantResult.OutOfSeason;
             }
 
             if (!Inventory.TryRemove(definition.SeedItemId, 1))
             {
-                return false;
+                return PlantResult.MissingSeed;
             }
 
             if (plot.Plant(definition, Clock.CurrentDay))
             {
-                return true;
+                return PlantResult.Success;
             }
 
             Inventory.Add(definition.SeedItemId, 1);
-            return false;
+            throw new InvalidOperationException("The plot rejected a planting command after its preconditions passed.");
         }
 
         public bool Harvest(StableId plotId)

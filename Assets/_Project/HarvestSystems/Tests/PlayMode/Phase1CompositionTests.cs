@@ -1,5 +1,6 @@
 using System.Collections;
 using HarvestSystems.Domain.Common;
+using HarvestSystems.Domain.Time;
 using HarvestSystems.Unity.Composition;
 using NUnit.Framework;
 using UnityEngine;
@@ -21,9 +22,13 @@ namespace HarvestSystems.Tests.PlayMode
             Assert.That(bootstrap.GameController.Simulation, Is.Not.Null);
             Assert.That(bootstrap.GameController.Simulation.Clock.CurrentDay, Is.EqualTo(1));
             Assert.That(bootstrap.GameController.Simulation.Clock.Date.ToString(), Is.EqualTo("Year 1, Day 1"));
+            Assert.That(bootstrap.GameController.Simulation.Clock.CalendarDate.ToString(), Is.EqualTo("Year 1, Spring 1"));
             Assert.That(bootstrap.GameController.Simulation.Clock.Time.ToString(), Is.EqualTo("06:00"));
             Assert.That(bootstrap.GameController.AvailableCrops.Count, Is.EqualTo(2));
             Assert.That(bootstrap.GameController.SelectedCropId, Is.EqualTo(new StableId("crop.carrot")));
+            Assert.That(bootstrap.GameController.AvailableCrops[0].CanPlantIn(Season.Spring), Is.True);
+            Assert.That(bootstrap.GameController.AvailableCrops[0].CanPlantIn(Season.Autumn), Is.False);
+            Assert.That(bootstrap.GameController.AvailableCrops[1].CanPlantIn(Season.Autumn), Is.True);
             Assert.That(
                 bootstrap.GameController.Simulation.Inventory.GetQuantity(new StableId("item.carrot_seed")),
                 Is.EqualTo(4));

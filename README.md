@@ -14,10 +14,11 @@ The first slice supports:
 - watering planted crops
 - advancing one hour at the orange time marker or starting the next day at the blue marker
 - a deterministic clock with time-of-day and a compact year/day calendar
+- four seven-day seasons with data-driven planting availability and clear rejection feedback
 - deterministic growth for watered crops and daily moisture reset
 - harvesting a mature crop into inventory
 
-Selling, seasons, save/load, NPCs, and custom authoring tools are intentionally deferred.
+Selling, crop death, save/load, NPCs, and custom authoring tools are intentionally deferred.
 
 ## Technology baseline
 

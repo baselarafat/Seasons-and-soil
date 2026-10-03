@@ -5,6 +5,25 @@ namespace HarvestSystems.Tests.EditMode
 {
     public sealed class GameClockTests
     {
+        [TestCase(1, 1, Season.Spring, 1)]
+        [TestCase(7, 1, Season.Spring, 7)]
+        [TestCase(8, 1, Season.Summer, 1)]
+        [TestCase(15, 1, Season.Autumn, 1)]
+        [TestCase(22, 1, Season.Winter, 1)]
+        [TestCase(29, 2, Season.Spring, 1)]
+        public void CalendarDate_ResolvesSeasonBoundaries(
+            int absoluteDay,
+            int expectedYear,
+            Season expectedSeason,
+            int expectedDayOfSeason)
+        {
+            var clock = new GameClock(startingDay: absoluteDay);
+
+            Assert.That(
+                clock.CalendarDate,
+                Is.EqualTo(new SeasonDate(expectedYear, expectedSeason, expectedDayOfSeason)));
+        }
+
         [Test]
         public void AdvanceDay_IncrementsDayBeforePublishingEvent()
         {
@@ -16,6 +35,7 @@ namespace HarvestSystems.Tests.EditMode
 
             Assert.That(clock.CurrentDay, Is.EqualTo(2));
             Assert.That(clock.Time, Is.EqualTo(new GameTime(6, 0)));
+            Assert.That(clock.CalendarDate, Is.EqualTo(new SeasonDate(1, Season.Spring, 2)));
             Assert.That(publishedDay, Is.EqualTo(new GameDate(1, 2)));
         }
 
@@ -59,13 +79,32 @@ namespace HarvestSystems.Tests.EditMode
             clock.AdvanceMinutes(60);
 
             Assert.That(clock.Date, Is.EqualTo(new GameDate(2, 1)));
+            Assert.That(clock.CalendarDate, Is.EqualTo(new SeasonDate(2, Season.Spring, 1)));
             Assert.That(clock.Time, Is.EqualTo(new GameTime(0, 0)));
+        }
+
+        [Test]
+        public void AdvanceDay_RollsIntoNextSeason()
+        {
+            var clock = new GameClock(startingDay: 7);
+
+            clock.AdvanceDay();
+
+            Assert.That(clock.CalendarDate, Is.EqualTo(new SeasonDate(1, Season.Summer, 1)));
         }
 
         [Test]
         public void Constructor_RejectsNonPositiveStartingDay()
         {
             Assert.That(() => new GameClock(0), Throws.TypeOf<System.ArgumentOutOfRangeException>());
+        }
+
+        [Test]
+        public void Constructor_RejectsYearThatCannotBeSplitIntoFourEqualSeasons()
+        {
+            Assert.That(
+                () => new GameClock(daysPerYear: 30),
+                Throws.TypeOf<System.ArgumentOutOfRangeException>());
         }
 
         [Test]

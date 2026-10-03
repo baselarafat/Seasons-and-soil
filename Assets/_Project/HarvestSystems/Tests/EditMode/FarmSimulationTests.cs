@@ -28,7 +28,7 @@ namespace HarvestSystems.Tests.EditMode
                        new[] { crop }))
             {
                 Assert.That(simulation.Till(PlotId), Is.True);
-                Assert.That(simulation.Plant(PlotId, CropId), Is.True);
+                Assert.That(simulation.Plant(PlotId, CropId), Is.EqualTo(PlantResult.Success));
                 Assert.That(inventory.GetQuantity(SeedId), Is.Zero);
 
                 Assert.That(simulation.Water(PlotId), Is.True);
@@ -141,9 +141,56 @@ namespace HarvestSystems.Tests.EditMode
                        new[] { plot },
                        new[] { CreateCrop(2, 1) }))
             {
-                Assert.That(simulation.Plant(PlotId, CropId), Is.False);
+                Assert.That(simulation.Plant(PlotId, CropId), Is.EqualTo(PlantResult.MissingSeed));
                 Assert.That(plot.Crop, Is.Null);
             }
+        }
+
+        [Test]
+        public void Plant_OutOfSeason_DoesNotConsumeSeedOrCreateCrop()
+        {
+            var inventory = new Inventory();
+            inventory.Add(SeedId, 1);
+            var plot = new SoilPlot(PlotId);
+            var springCrop = new CropDefinition(
+                CropId,
+                "Carrot",
+                SeedId,
+                ProduceId,
+                2,
+                1,
+                new[] { Season.Spring });
+
+            using (var simulation = new FarmSimulation(
+                       new GameClock(startingDay: 8),
+                       inventory,
+                       new[] { plot },
+                       new[] { springCrop }))
+            {
+                simulation.Till(PlotId);
+
+                PlantResult result = simulation.Plant(PlotId, CropId);
+
+                Assert.That(simulation.Clock.CalendarDate, Is.EqualTo(new SeasonDate(1, Season.Summer, 1)));
+                Assert.That(result, Is.EqualTo(PlantResult.OutOfSeason));
+                Assert.That(inventory.GetQuantity(SeedId), Is.EqualTo(1));
+                Assert.That(plot.Crop, Is.Null);
+            }
+        }
+
+        [Test]
+        public void CropDefinition_RejectsEmptyPlantingSeasonList()
+        {
+            Assert.That(
+                () => new CropDefinition(
+                    CropId,
+                    "Carrot",
+                    SeedId,
+                    ProduceId,
+                    2,
+                    1,
+                    new Season[0]),
+                Throws.TypeOf<System.ArgumentException>());
         }
 
         private static CropDefinition CreateCrop(int daysToMature, int harvestQuantity)
