@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: HarvestSystems.Unity::HarvestSystems.Unity.Data.ItemDefinitionSO
   stableId: item.carrot
   displayName: Carrot
+  sellPrice: 35

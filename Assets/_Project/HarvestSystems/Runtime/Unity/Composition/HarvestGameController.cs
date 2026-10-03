@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarvestSystems.Domain.Common;
+using HarvestSystems.Domain.Economy;
 using HarvestSystems.Domain.Farming;
+using HarvestSystems.Domain.Inventory;
 using HarvestSystems.Domain.Time;
 using HarvestSystems.Unity.Data;
+using HarvestSystems.Unity.Economy;
 using HarvestSystems.Unity.Farming;
 using HarvestSystems.Unity.Time;
 using UnityEngine;
@@ -24,6 +27,7 @@ namespace HarvestSystems.Unity.Composition
         public event Action StateChanged;
 
         public FarmSimulation Simulation { get; private set; }
+        public EconomyService Economy { get; private set; }
         public IReadOnlyList<CropDefinition> AvailableCrops => cropDefinitions;
         public StableId SelectedCropId => SelectedCrop.Id;
         public CropDefinition SelectedCrop => cropDefinitions[selectedCropIndex];
@@ -53,6 +57,15 @@ namespace HarvestSystems.Unity.Composition
             }
 
             cropDefinitions = cropAssets.Select(asset => asset.ToDomain()).ToArray();
+            ItemDefinition[] itemDefinitions = Resources.LoadAll<ItemDefinitionSO>("Definitions/Items")
+                .OrderBy(asset => asset.Id.Value, StringComparer.Ordinal)
+                .Select(asset => asset.ToDomain())
+                .ToArray();
+            if (itemDefinitions.Length == 0)
+            {
+                throw new InvalidOperationException("No ItemDefinitionSO assets were found in Resources/Definitions/Items.");
+            }
+
             cropAssetsById.Clear();
             foreach (CropDefinitionSO cropAsset in cropAssets)
             {
@@ -75,6 +88,7 @@ namespace HarvestSystems.Unity.Composition
             }
 
             Simulation = new FarmSimulation(new GameClock(), inventory, plots, cropDefinitions);
+            Economy = new EconomyService(inventory, new CurrencyWallet(), itemDefinitions);
 
             foreach (SoilPlotView view in plotViews)
             {
@@ -91,9 +105,15 @@ namespace HarvestSystems.Unity.Composition
                 timeAdvance.Bind(this);
             }
 
+            foreach (SellStationInteractable sellStation in FindObjectsByType<SellStationInteractable>())
+            {
+                sellStation.Bind(this);
+            }
+
             Simulation.Inventory.Changed += _ => StateChanged?.Invoke();
             Simulation.Clock.DayAdvanced += _ => StateChanged?.Invoke();
             Simulation.Clock.TimeAdvanced += _ => StateChanged?.Invoke();
+            Economy.Wallet.BalanceChanged += _ => StateChanged?.Invoke();
             Simulation.CropHarvested += harvested =>
             {
                 CropDefinitionSO harvestedCrop = cropAssetsById[harvested.CropId];
@@ -181,6 +201,16 @@ namespace HarvestSystems.Unity.Composition
             selectedCropIndex = (selectedCropIndex + 1) % cropDefinitions.Length;
             StatusMessage = $"Selected {cropAssets[selectedCropIndex].SeedItem.DisplayName}.";
             StateChanged?.Invoke();
+        }
+
+        public SaleReceipt SellHarvestedProduce()
+        {
+            SaleReceipt receipt = Economy.SellAll(cropDefinitions.Select(crop => crop.HarvestedItemId));
+            StatusMessage = receipt.WasSuccessful
+                ? $"Sold {receipt.UnitsSold} harvested items for {receipt.Revenue}g."
+                : "There is no harvested produce to sell.";
+            StateChanged?.Invoke();
+            return receipt;
         }
     }
 }

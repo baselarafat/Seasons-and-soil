@@ -17,8 +17,9 @@ The first slice supports:
 - four seven-day seasons with data-driven planting availability and clear rejection feedback
 - deterministic growth for watered crops and daily moisture reset
 - harvesting a mature crop into inventory
+- selling all harvested produce at the gold station for data-driven prices
 
-Selling, crop death, save/load, NPCs, and custom authoring tools are intentionally deferred.
+Buying seeds, crop death, save/load, NPCs, and custom authoring tools are intentionally deferred.
 
 ## Technology baseline
 
@@ -35,7 +36,7 @@ The project tracks the newest stable packages supported by its pinned Unity edit
 1. Open the repository folder in Unity Hub using Unity `6000.6.0f1`.
 2. Open `Assets/_Project/HarvestSystems/Scenes/Phase1.unity`.
 3. Enter Play Mode.
-4. Use WASD, arrow keys, or the left stick to move. Use `E` or the gamepad south button to interact. Use `Q` or the gamepad right shoulder to select the next seed. The orange marker advances one hour; the blue marker advances to 06:00 on the next day.
+4. Use WASD, arrow keys, or the left stick to move. Use `E` or the gamepad south button to interact. Use `Q` or the gamepad right shoulder to select the next seed. The orange marker advances one hour, the blue marker advances to 06:00 on the next day, and the gold station sells harvested produce.
 
 The scene contains one bootstrap component. It creates simple programmer-art geometry at runtime so the vertical slice stays reviewable without committing opaque binary art assets.
 

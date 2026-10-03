@@ -1,3 +1,4 @@
+using HarvestSystems.Unity.Economy;
 using HarvestSystems.Unity.Farming;
 using HarvestSystems.Unity.Interaction;
 using HarvestSystems.Unity.Player;
@@ -22,6 +23,7 @@ namespace HarvestSystems.Unity.Composition
             BuildPlots();
             BuildDayAdvanceTile();
             BuildTimeAdvanceTile();
+            BuildSellStation();
             BuildPlayer(GameController);
 
             Phase1Hud hud = new GameObject("Phase 1 HUD").AddComponent<Phase1Hud>();
@@ -85,6 +87,15 @@ namespace HarvestSystems.Unity.Composition
             WorldVisuals.AddSquare(tile, new Color(0.94f, 0.55f, 0.18f), new Vector2(1.5f, 1.5f), 0);
             tile.AddComponent<BoxCollider2D>().size = new Vector2(1.5f, 1.5f);
             tile.AddComponent<TimeAdvanceInteractable>();
+        }
+
+        private static void BuildSellStation()
+        {
+            GameObject station = new GameObject("Sell Station");
+            station.transform.position = new Vector3(4f, 1.6f, 0f);
+            WorldVisuals.AddSquare(station, new Color(0.95f, 0.76f, 0.20f), new Vector2(1.5f, 1.5f), 0);
+            station.AddComponent<BoxCollider2D>().size = new Vector2(1.5f, 1.5f);
+            station.AddComponent<SellStationInteractable>();
         }
 
         private static void BuildPlayer(HarvestGameController gameController)

@@ -20,9 +20,9 @@ The domain never references `UnityEngine`. Unity-facing code may translate autho
 |---|---|---|---|
 | Time | `GameClock`, `GameDate`, `GameTime`, `SeasonDate` | Later calendar configuration asset if needed | clock HUD and time controls |
 | Farming | `SoilPlot`, `CropState`, `CropDefinition`, `FarmSimulation` | `CropDefinitionSO` | `SoilPlotView` |
-| Items/inventory | `StableId`, `Inventory`, inventory change data | `ItemDefinitionSO` | inventory presenter/UI (later) |
+| Items/inventory | `StableId`, `ItemDefinition`, `Inventory`, inventory change data | `ItemDefinitionSO` | inventory presenter/UI (later) |
 | Interaction | action methods on the relevant domain system | optional interaction prompts (later) | `IInteractable`, `PlayerInteractor`, player controller |
-| Economy | later pure pricing and transaction services | shop/catalog assets | shop UI/controller |
+| Economy | `EconomyService`, `CurrencyWallet`, `SaleReceipt` | sell prices on item assets | sell-station interaction and HUD |
 | NPC schedules | later schedule entries and resolver | NPC and schedule assets | navigation/animation adapter |
 | Persistence | later snapshot DTOs and reconstruction services | schema/version policy if useful | file storage adapter |
 
@@ -35,6 +35,7 @@ Assets/_Project/HarvestSystems/
   Runtime/
     Domain/
       Common/
+      Economy/
       Farming/
       Inventory/
       Time/
@@ -74,6 +75,10 @@ PlayerInteractor
               -> SoilPlot aggregates
               -> Inventory
               -> CropDefinition catalog
+          -> EconomyService
+              -> Inventory
+              -> CurrencyWallet
+              -> ItemDefinition catalog
 
 CropDefinitionSO -> ToDomain() -> CropDefinition
 ItemDefinitionSO ----------------> stable item identifiers
@@ -82,15 +87,16 @@ GameClock.DayAdvanced -> FarmSimulation advances every SoilPlot
 SoilPlot.Changed ------> SoilPlotView refreshes its presentation
 Inventory.Changed -----> future inventory presenter
 FarmSimulation.CropHarvested -> HUD / future analytics hooks
+EconomyService.SaleCompleted -> HUD / future analytics hooks
 ```
 
 The `HarvestGameController` is intentionally a thin scene-level composition root and input-facing facade. It owns the lifetime of one simulation; tests can instantiate the simulation directly without it.
 
 ## Configuration versus runtime state
 
-Configuration answers "what kind of thing is this?" Crop duration, yield, planting seasons, names, and item relationships are authored in ScriptableObjects. On startup, adapters validate and convert them into plain, read-only domain definitions.
+Configuration answers "what kind of thing is this?" Crop duration, yield, planting seasons, item prices, names, and item relationships are authored in ScriptableObjects. On startup, adapters validate and convert them into plain, read-only domain definitions.
 
-Runtime state answers "what happened in this playthrough?" Current day, item quantities, tilled plots, planted crop IDs, and accumulated growth live in ordinary C# objects. Runtime state never mutates a ScriptableObject.
+Runtime state answers "what happened in this playthrough?" Current day, currency balance, item quantities, tilled plots, planted crop IDs, and accumulated growth live in ordinary C# objects. Runtime state never mutates a ScriptableObject.
 
 This conversion has a small amount of mapping code, but it prevents scene or asset lifetime from leaking into business rules. An alternative is to let rules consume ScriptableObjects directly. That is quicker at first, but it ties tests and offline simulation to Unity asset loading and makes accidental asset mutation more likely.
 
@@ -104,7 +110,7 @@ Plot IDs are authored/world IDs and crop/item IDs are definition IDs. They share
 
 ## Save/load seam
 
-Save/load is not implemented in Phase 1. Later, each stateful boundary will expose plain versioned snapshots, for example `ClockSnapshot`, `InventorySnapshot`, and `SoilPlotSnapshot`. A `GameStateSnapshot` will aggregate them. A persistence coordinator will:
+Save/load is not implemented yet. Later, each stateful boundary will expose plain versioned snapshots, for example `ClockSnapshot`, `WalletSnapshot`, `InventorySnapshot`, and `SoilPlotSnapshot`. A `GameStateSnapshot` will aggregate them. A persistence coordinator will:
 
 1. ask systems for snapshots;
 2. serialize DTOs through an injected storage/serializer adapter;
@@ -121,6 +127,7 @@ Use local, typed C# events owned by the object that produces the event:
 - `SoilPlot.Changed`
 - `Inventory.Changed`
 - `FarmSimulation.CropHarvested`
+- `EconomyService.SaleCompleted`
 
 The composition root wires subscriptions and owns their lifetime. Events are notifications of completed facts; direct method calls remain preferable for commands that need a result, such as plant or harvest. This avoids a global event bus with hidden dependencies and hard-to-trace ordering.
 
@@ -154,6 +161,12 @@ Season rules currently limit planting only. Existing crops continue to grow when
 
 Crops gain one growth day only when their plot is watered. A day transition applies growth first and then resets moisture, so the rule has deterministic ordering and a dry day simply pauses growth. Soil owns `IsWatered` because moisture belongs to the plot even when no crop is present. An alternative is storing `LastWateredDay`; that becomes useful if weather, irrigation history, or multi-day moisture is introduced, but a boolean expresses the current rule more directly and serializes cleanly later.
 
+### Economy transactions are domain commands
+
+`EconomyService` owns the sell transaction across `Inventory`, immutable `ItemDefinition` prices, and `CurrencyWallet`. It calculates and overflow-checks the complete sale before removing inventory, then returns a `SaleReceipt` suitable for UI, tests, analytics, and later simulation reports. Zero-price items are explicitly not sellable, allowing seeds to share the same item definition without a separate item hierarchy.
+
+An alternative is placing `SellPrice` on `CropDefinition` and calculating sales in the MonoBehaviour. That removes one domain type, but it incorrectly treats harvested items as inseparable from crops and makes economy analysis depend on Unity scene code. Item-level pricing is the cleaner seam for a future balance editor. Buying, variable shop modifiers, and a transaction ledger remain deferred until those requirements are implemented.
+
 ### Programmer-art scene bootstrap
 
 The checked-in Phase 1 scene contains a bootstrap that creates simple colored geometry. This makes the repository runnable before art/prefab workflows exist. The bootstrap is a temporary composition convenience; production scenes and prefabs can replace it without changing the domain.
@@ -184,10 +197,11 @@ The rendering alternative was Built-in, which would have reduced initial setup b
 - crop growth/death policy defined from play requirements
 - clearer interaction feedback and focused PlayMode integration coverage
 
-### Phase 3 — inventory and economy
+### Phase 3 — inventory and economy (in progress)
 
 - inventory capacity/stack rules and usable UI
-- shop catalog, buy/sell transactions, and currency ledger
+- sell transactions, data-driven prices, and currency wallet (implemented)
+- shop catalog, buying, and transaction ledger
 - pure economy metrics such as seed cost, yield value, and profit per day
 - transaction and economy tests
 

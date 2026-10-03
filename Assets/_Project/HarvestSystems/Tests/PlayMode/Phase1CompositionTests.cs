@@ -2,6 +2,7 @@ using System.Collections;
 using HarvestSystems.Domain.Common;
 using HarvestSystems.Domain.Time;
 using HarvestSystems.Unity.Composition;
+using HarvestSystems.Unity.Economy;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -20,6 +21,9 @@ namespace HarvestSystems.Tests.PlayMode
 
             Assert.That(bootstrap.GameController, Is.Not.Null);
             Assert.That(bootstrap.GameController.Simulation, Is.Not.Null);
+            Assert.That(bootstrap.GameController.Economy, Is.Not.Null);
+            Assert.That(bootstrap.GameController.Economy.Wallet.Balance, Is.Zero);
+            Assert.That(Object.FindFirstObjectByType<SellStationInteractable>(), Is.Not.Null);
             Assert.That(bootstrap.GameController.Simulation.Clock.CurrentDay, Is.EqualTo(1));
             Assert.That(bootstrap.GameController.Simulation.Clock.Date.ToString(), Is.EqualTo("Year 1, Day 1"));
             Assert.That(bootstrap.GameController.Simulation.Clock.CalendarDate.ToString(), Is.EqualTo("Year 1, Spring 1"));
@@ -51,6 +55,16 @@ namespace HarvestSystems.Tests.PlayMode
             Assert.That(
                 bootstrap.GameController.Simulation.Inventory.GetQuantity(new StableId("item.carrot_seed")),
                 Is.EqualTo(4));
+
+            bootstrap.GameController.Simulation.Inventory.Add(new StableId("item.carrot"), 2);
+            var sale = bootstrap.GameController.SellHarvestedProduce();
+
+            Assert.That(sale.UnitsSold, Is.EqualTo(2));
+            Assert.That(sale.Revenue, Is.EqualTo(70));
+            Assert.That(bootstrap.GameController.Economy.Wallet.Balance, Is.EqualTo(70));
+            Assert.That(
+                bootstrap.GameController.Simulation.Inventory.GetQuantity(new StableId("item.carrot")),
+                Is.Zero);
 
             for (int i = 1; i <= 6; i++)
             {

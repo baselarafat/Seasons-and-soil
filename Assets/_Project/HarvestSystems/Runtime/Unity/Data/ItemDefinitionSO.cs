@@ -1,4 +1,5 @@
 using HarvestSystems.Domain.Common;
+using HarvestSystems.Domain.Inventory;
 using UnityEngine;
 
 namespace HarvestSystems.Unity.Data
@@ -8,14 +9,18 @@ namespace HarvestSystems.Unity.Data
     {
         [SerializeField] private string stableId = "item.new_item";
         [SerializeField] private string displayName = "New Item";
+        [SerializeField, Min(0)] private int sellPrice;
 
         public StableId Id => new StableId(stableId);
         public string DisplayName => displayName;
+
+        public ItemDefinition ToDomain() => new ItemDefinition(Id, displayName, sellPrice);
 
         private void OnValidate()
         {
             stableId = stableId?.Trim();
             displayName = displayName?.Trim();
+            sellPrice = Mathf.Max(0, sellPrice);
         }
     }
 }
