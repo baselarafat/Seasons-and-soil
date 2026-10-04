@@ -42,8 +42,54 @@ namespace HarvestSystems.Domain.Economy
         }
 
         public event Action<SaleReceipt> SaleCompleted;
+        public event Action<PurchaseResult> PurchaseCompleted;
 
         public CurrencyWallet Wallet { get; }
+
+        public ItemDefinition GetItemDefinition(StableId itemId)
+        {
+            if (!items.TryGetValue(itemId, out ItemDefinition definition))
+            {
+                throw new KeyNotFoundException($"Unknown item '{itemId}'.");
+            }
+
+            return definition;
+        }
+
+        public PurchaseResult Buy(StableId itemId, int quantity)
+        {
+            if (quantity < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(quantity));
+            }
+
+            ItemDefinition definition = GetItemDefinition(itemId);
+            if (!definition.IsPurchasable)
+            {
+                return new PurchaseResult(PurchaseStatus.NotPurchasable, itemId, quantity, 0);
+            }
+
+            int totalCost = checked(definition.PurchasePrice * quantity);
+            if (Wallet.Balance < totalCost)
+            {
+                return new PurchaseResult(PurchaseStatus.InsufficientFunds, itemId, quantity, totalCost);
+            }
+
+            checked
+            {
+                _ = inventory.GetQuantity(itemId) + quantity;
+            }
+
+            if (!Wallet.TryDebit(totalCost))
+            {
+                throw new InvalidOperationException("Wallet balance changed while a purchase was being committed.");
+            }
+
+            inventory.Add(itemId, quantity);
+            var result = new PurchaseResult(PurchaseStatus.Success, itemId, quantity, totalCost);
+            PurchaseCompleted?.Invoke(result);
+            return result;
+        }
 
         public SaleReceipt SellAll(IEnumerable<StableId> itemIds)
         {
@@ -64,10 +110,7 @@ namespace HarvestSystems.Domain.Economy
                     continue;
                 }
 
-                if (!items.TryGetValue(itemId, out ItemDefinition definition))
-                {
-                    throw new KeyNotFoundException($"Unknown item '{itemId}'.");
-                }
+                ItemDefinition definition = GetItemDefinition(itemId);
 
                 int quantity = inventory.GetQuantity(itemId);
                 if (!definition.IsSellable || quantity == 0)

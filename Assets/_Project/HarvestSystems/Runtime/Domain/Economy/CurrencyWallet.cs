@@ -28,5 +28,22 @@ namespace HarvestSystems.Domain.Economy
             Balance = checked(Balance + amount);
             BalanceChanged?.Invoke(Balance);
         }
+
+        public bool TryDebit(int amount)
+        {
+            if (amount < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            }
+
+            if (Balance < amount)
+            {
+                return false;
+            }
+
+            Balance -= amount;
+            BalanceChanged?.Invoke(Balance);
+            return true;
+        }
     }
 }

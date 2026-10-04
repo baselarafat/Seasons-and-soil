@@ -22,7 +22,7 @@ The domain never references `UnityEngine`. Unity-facing code may translate autho
 | Farming | `SoilPlot`, `CropState`, `CropDefinition`, `FarmSimulation` | `CropDefinitionSO` | `SoilPlotView` |
 | Items/inventory | `StableId`, `ItemDefinition`, `Inventory`, inventory change data | `ItemDefinitionSO` | inventory presenter/UI (later) |
 | Interaction | action methods on the relevant domain system | optional interaction prompts (later) | `IInteractable`, `PlayerInteractor`, player controller |
-| Economy | `EconomyService`, `CurrencyWallet`, `SaleReceipt` | sell prices on item assets | sell-station interaction and HUD |
+| Economy | `EconomyService`, `CurrencyWallet`, sale/purchase results | item prices | sell station, seed shop, and HUD |
 | NPC schedules | later schedule entries and resolver | NPC and schedule assets | navigation/animation adapter |
 | Persistence | later snapshot DTOs and reconstruction services | schema/version policy if useful | file storage adapter |
 
@@ -88,6 +88,7 @@ SoilPlot.Changed ------> SoilPlotView refreshes its presentation
 Inventory.Changed -----> future inventory presenter
 FarmSimulation.CropHarvested -> HUD / future analytics hooks
 EconomyService.SaleCompleted -> HUD / future analytics hooks
+EconomyService.PurchaseCompleted -> HUD / future analytics hooks
 ```
 
 The `HarvestGameController` is intentionally a thin scene-level composition root and input-facing facade. It owns the lifetime of one simulation; tests can instantiate the simulation directly without it.
@@ -128,6 +129,7 @@ Use local, typed C# events owned by the object that produces the event:
 - `Inventory.Changed`
 - `FarmSimulation.CropHarvested`
 - `EconomyService.SaleCompleted`
+- `EconomyService.PurchaseCompleted`
 
 The composition root wires subscriptions and owns their lifetime. Events are notifications of completed facts; direct method calls remain preferable for commands that need a result, such as plant or harvest. This avoids a global event bus with hidden dependencies and hard-to-trace ordering.
 
@@ -163,9 +165,9 @@ Crops gain one growth day only when their plot is watered. A day transition appl
 
 ### Economy transactions are domain commands
 
-`EconomyService` owns the sell transaction across `Inventory`, immutable `ItemDefinition` prices, and `CurrencyWallet`. It calculates and overflow-checks the complete sale before removing inventory, then returns a `SaleReceipt` suitable for UI, tests, analytics, and later simulation reports. Zero-price items are explicitly not sellable, allowing seeds to share the same item definition without a separate item hierarchy.
+`EconomyService` owns buy and sell transactions across `Inventory`, immutable `ItemDefinition` prices, and `CurrencyWallet`. It validates and overflow-checks each complete transaction before mutating state, then returns explicit results suitable for UI, tests, analytics, and later simulation reports. A zero sell or purchase price disables that direction, allowing seeds and produce to share the same item definition without an item-type hierarchy.
 
-An alternative is placing `SellPrice` on `CropDefinition` and calculating sales in the MonoBehaviour. That removes one domain type, but it incorrectly treats harvested items as inseparable from crops and makes economy analysis depend on Unity scene code. Item-level pricing is the cleaner seam for a future balance editor. Buying, variable shop modifiers, and a transaction ledger remain deferred until those requirements are implemented.
+An alternative is placing prices on `CropDefinition` and calculating transactions in the MonoBehaviour. That removes one domain type, but it incorrectly treats items as inseparable from crops and makes economy analysis depend on Unity scene code. Item-level pricing is the cleaner seam for a future balance editor. The current purple shop buys one selected seed per interaction; a browsable shop UI, variable price modifiers, and a transaction ledger remain deferred until those requirements are implemented.
 
 ### Programmer-art scene bootstrap
 
@@ -200,8 +202,8 @@ The rendering alternative was Built-in, which would have reduced initial setup b
 ### Phase 3 — inventory and economy (in progress)
 
 - inventory capacity/stack rules and usable UI
-- sell transactions, data-driven prices, and currency wallet (implemented)
-- shop catalog, buying, and transaction ledger
+- buy/sell transactions, data-driven item prices, and currency wallet (implemented)
+- browsable shop UI and transaction ledger
 - pure economy metrics such as seed cost, yield value, and profit per day
 - transaction and economy tests
 

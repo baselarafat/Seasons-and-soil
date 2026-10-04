@@ -110,6 +110,11 @@ namespace HarvestSystems.Unity.Composition
                 sellStation.Bind(this);
             }
 
+            foreach (SeedShopInteractable seedShop in FindObjectsByType<SeedShopInteractable>())
+            {
+                seedShop.Bind(this);
+            }
+
             Simulation.Inventory.Changed += _ => StateChanged?.Invoke();
             Simulation.Clock.DayAdvanced += _ => StateChanged?.Invoke();
             Simulation.Clock.TimeAdvanced += _ => StateChanged?.Invoke();
@@ -211,6 +216,30 @@ namespace HarvestSystems.Unity.Composition
                 : "There is no harvested produce to sell.";
             StateChanged?.Invoke();
             return receipt;
+        }
+
+        public PurchaseResult BuySelectedSeed()
+        {
+            StableId seedItemId = SelectedCrop.SeedItemId;
+            ItemDefinition seedDefinition = Economy.GetItemDefinition(seedItemId);
+            PurchaseResult result = Economy.Buy(seedItemId, 1);
+            switch (result.Status)
+            {
+                case PurchaseStatus.Success:
+                    StatusMessage = $"Bought 1 {seedDefinition.DisplayName} for {result.TotalCost}g.";
+                    break;
+                case PurchaseStatus.InsufficientFunds:
+                    StatusMessage = $"Need {result.TotalCost}g to buy {seedDefinition.DisplayName}.";
+                    break;
+                case PurchaseStatus.NotPurchasable:
+                    StatusMessage = $"{seedDefinition.DisplayName} is not sold here.";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            StateChanged?.Invoke();
+            return result;
         }
     }
 }

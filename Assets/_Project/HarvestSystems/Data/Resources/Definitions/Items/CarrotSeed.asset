@@ -15,3 +15,4 @@ MonoBehaviour:
   stableId: item.carrot_seed
   displayName: Carrot Seed
   sellPrice: 0
+  purchasePrice: 15

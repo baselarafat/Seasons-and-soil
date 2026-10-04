@@ -24,6 +24,7 @@ namespace HarvestSystems.Unity.Composition
             BuildDayAdvanceTile();
             BuildTimeAdvanceTile();
             BuildSellStation();
+            BuildSeedShop();
             BuildPlayer(GameController);
 
             Phase1Hud hud = new GameObject("Phase 1 HUD").AddComponent<Phase1Hud>();
@@ -96,6 +97,15 @@ namespace HarvestSystems.Unity.Composition
             WorldVisuals.AddSquare(station, new Color(0.95f, 0.76f, 0.20f), new Vector2(1.5f, 1.5f), 0);
             station.AddComponent<BoxCollider2D>().size = new Vector2(1.5f, 1.5f);
             station.AddComponent<SellStationInteractable>();
+        }
+
+        private static void BuildSeedShop()
+        {
+            GameObject shop = new GameObject("Seed Shop");
+            shop.transform.position = new Vector3(4f, -0.2f, 0f);
+            WorldVisuals.AddSquare(shop, new Color(0.62f, 0.35f, 0.82f), new Vector2(1.5f, 1.5f), 0);
+            shop.AddComponent<BoxCollider2D>().size = new Vector2(1.5f, 1.5f);
+            shop.AddComponent<SeedShopInteractable>();
         }
 
         private static void BuildPlayer(HarvestGameController gameController)

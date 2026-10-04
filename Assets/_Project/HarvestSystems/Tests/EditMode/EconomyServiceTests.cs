@@ -70,8 +70,76 @@ namespace HarvestSystems.Tests.EditMode
         public void ItemDefinition_RejectsNegativeSellPrice()
         {
             Assert.That(
-                () => new ItemDefinition(Carrot, "Carrot", -1),
+                () => new ItemDefinition(Carrot, "Carrot", -1, 0),
                 Throws.TypeOf<System.ArgumentOutOfRangeException>());
+        }
+
+        [Test]
+        public void ItemDefinition_RejectsNegativePurchasePrice()
+        {
+            Assert.That(
+                () => new ItemDefinition(CarrotSeed, "Carrot Seed", 0, -1),
+                Throws.TypeOf<System.ArgumentOutOfRangeException>());
+        }
+
+        [Test]
+        public void Buy_DebitsWalletAndAddsConfiguredItemQuantity()
+        {
+            var inventory = new Inventory();
+            var wallet = new CurrencyWallet(40);
+            var economy = CreateEconomy(inventory, wallet);
+            PurchaseResult publishedResult = default;
+            economy.PurchaseCompleted += result => publishedResult = result;
+
+            PurchaseResult result = economy.Buy(CarrotSeed, 2);
+
+            Assert.That(result.Status, Is.EqualTo(PurchaseStatus.Success));
+            Assert.That(result.TotalCost, Is.EqualTo(30));
+            Assert.That(publishedResult.TotalCost, Is.EqualTo(30));
+            Assert.That(wallet.Balance, Is.EqualTo(10));
+            Assert.That(inventory.GetQuantity(CarrotSeed), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Buy_WithInsufficientFunds_DoesNotMutateState()
+        {
+            var inventory = new Inventory();
+            var wallet = new CurrencyWallet(14);
+            var economy = CreateEconomy(inventory, wallet);
+
+            PurchaseResult result = economy.Buy(CarrotSeed, 1);
+
+            Assert.That(result.Status, Is.EqualTo(PurchaseStatus.InsufficientFunds));
+            Assert.That(result.TotalCost, Is.EqualTo(15));
+            Assert.That(wallet.Balance, Is.EqualTo(14));
+            Assert.That(inventory.GetQuantity(CarrotSeed), Is.Zero);
+        }
+
+        [Test]
+        public void Buy_ItemWithoutPurchasePrice_IsRejectedWithoutMutation()
+        {
+            var inventory = new Inventory();
+            var wallet = new CurrencyWallet(100);
+            var economy = CreateEconomy(inventory, wallet);
+
+            PurchaseResult result = economy.Buy(Carrot, 1);
+
+            Assert.That(result.Status, Is.EqualTo(PurchaseStatus.NotPurchasable));
+            Assert.That(wallet.Balance, Is.EqualTo(100));
+            Assert.That(inventory.GetQuantity(Carrot), Is.Zero);
+        }
+
+        [Test]
+        public void Buy_WhenInventoryWouldOverflow_DoesNotDebitWallet()
+        {
+            var inventory = new Inventory();
+            inventory.Add(CarrotSeed, int.MaxValue);
+            var wallet = new CurrencyWallet(15);
+            var economy = CreateEconomy(inventory, wallet);
+
+            Assert.That(() => economy.Buy(CarrotSeed, 1), Throws.TypeOf<System.OverflowException>());
+            Assert.That(wallet.Balance, Is.EqualTo(15));
+            Assert.That(inventory.GetQuantity(CarrotSeed), Is.EqualTo(int.MaxValue));
         }
 
         private static EconomyService CreateEconomy(Inventory inventory, CurrencyWallet wallet)
@@ -81,9 +149,9 @@ namespace HarvestSystems.Tests.EditMode
                 wallet,
                 new[]
                 {
-                    new ItemDefinition(Carrot, "Carrot", 35),
-                    new ItemDefinition(Turnip, "Turnip", 20),
-                    new ItemDefinition(CarrotSeed, "Carrot Seed", 0)
+                    new ItemDefinition(Carrot, "Carrot", 35, 0),
+                    new ItemDefinition(Turnip, "Turnip", 20, 0),
+                    new ItemDefinition(CarrotSeed, "Carrot Seed", 0, 15)
                 });
         }
     }

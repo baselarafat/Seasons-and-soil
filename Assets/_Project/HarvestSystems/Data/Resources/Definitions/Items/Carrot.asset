@@ -15,3 +15,4 @@ MonoBehaviour:
   stableId: item.carrot
   displayName: Carrot
   sellPrice: 35
+  purchasePrice: 0

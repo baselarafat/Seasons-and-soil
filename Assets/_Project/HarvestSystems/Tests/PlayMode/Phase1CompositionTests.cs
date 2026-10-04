@@ -24,6 +24,7 @@ namespace HarvestSystems.Tests.PlayMode
             Assert.That(bootstrap.GameController.Economy, Is.Not.Null);
             Assert.That(bootstrap.GameController.Economy.Wallet.Balance, Is.Zero);
             Assert.That(Object.FindFirstObjectByType<SellStationInteractable>(), Is.Not.Null);
+            Assert.That(Object.FindFirstObjectByType<SeedShopInteractable>(), Is.Not.Null);
             Assert.That(bootstrap.GameController.Simulation.Clock.CurrentDay, Is.EqualTo(1));
             Assert.That(bootstrap.GameController.Simulation.Clock.Date.ToString(), Is.EqualTo("Year 1, Day 1"));
             Assert.That(bootstrap.GameController.Simulation.Clock.CalendarDate.ToString(), Is.EqualTo("Year 1, Spring 1"));
@@ -65,6 +66,15 @@ namespace HarvestSystems.Tests.PlayMode
             Assert.That(
                 bootstrap.GameController.Simulation.Inventory.GetQuantity(new StableId("item.carrot")),
                 Is.Zero);
+
+            var purchase = bootstrap.GameController.BuySelectedSeed();
+
+            Assert.That(purchase.Status, Is.EqualTo(HarvestSystems.Domain.Economy.PurchaseStatus.Success));
+            Assert.That(purchase.TotalCost, Is.EqualTo(10));
+            Assert.That(bootstrap.GameController.Economy.Wallet.Balance, Is.EqualTo(60));
+            Assert.That(
+                bootstrap.GameController.Simulation.Inventory.GetQuantity(new StableId("item.turnip_seed")),
+                Is.EqualTo(4));
 
             for (int i = 1; i <= 6; i++)
             {

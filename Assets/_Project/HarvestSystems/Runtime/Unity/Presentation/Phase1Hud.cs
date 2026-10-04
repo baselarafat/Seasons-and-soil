@@ -72,11 +72,15 @@ namespace HarvestSystems.Unity.Presentation
                 inventoryEntries.Add($"{crop.DisplayName}: {seeds} seeds / {produce} harvested");
             }
 
+            int selectedSeedPrice = controller.Economy
+                .GetItemDefinition(controller.SelectedCrop.SeedItemId)
+                .PurchasePrice;
+
             return $"{controller.Simulation.Clock.CalendarDate}   {controller.Simulation.Clock.Time}   Currency: {controller.Economy.Wallet.Balance}g\n" +
-                   $"Selected: {controller.SelectedCrop.DisplayName}   Plant in: {string.Join(", ", controller.SelectedCrop.PlantingSeasons)}\n" +
+                   $"Selected: {controller.SelectedCrop.DisplayName}   Seed price: {selectedSeedPrice}g   Plant in: {string.Join(", ", controller.SelectedCrop.PlantingSeasons)}\n" +
                    $"{string.Join("    ", inventoryEntries)}\n" +
                    "Move: WASD / Arrows    Interact: E    Select seed: Q\n" +
-                   "Blue: next day    Orange: +1 hour    Gold: sell harvest\n" +
+                   "Blue: next day    Orange: +1 hour    Gold: sell    Purple: buy selected seed\n" +
                    "Plot actions: till → plant → water → harvest\n" +
                    controller.StatusMessage;
         }
